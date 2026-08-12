@@ -1,0 +1,56 @@
+# Dependency directories
+node_modules/
+vendor/
+target/
+build/
+dist/
+
+# Logs and temporary files
+*.log
+tmp/
+logs/
+.DS_Store # macOS specific
+Thumbs.db # Windows specific
+
+# Environment variables and sensitive data
+.env
+.env.local
+config/secrets.yml
+*.key
+*.pem
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# Build artifacts and compiled files
+*.class
+*.pyc
+__pycache__/
+*.o
+*.so
+*.dll
+
+# Database files
+*.sqlite3
+*.db
+data/*.sqlite3
+
+# Test coverage reports
+coverage/
+.nyc_output/
+
+# Specific framework/language ignores (examples)
+# Python
+venv/
+
+# Node.js
+npm-debug.log*
+
+# Java
+pom.xml.versionsBackup
+
+# Global ignore files (if applicable)
+.gitignore.global
