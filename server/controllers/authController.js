@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs'
+import bcrypt, { truncates } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import userModel from '../models/userModel.js';
 import { text } from 'express';
@@ -159,6 +159,7 @@ export const sendVerifyOtp = async (req,res)=>{
     }
 }
 
+// verify the user with otp
 export const verifyEmail = async (req,res)=>{
     const {userId,otp} = req.body;
 
@@ -205,5 +206,109 @@ export const verifyEmail = async (req,res)=>{
         
     } catch (error) {
         res.json({success:false,message:error.message});
+    }
+}
+
+// chekk if user is authenticated or what ?
+
+export const isAuthenticated = async (req,res)=>{
+    try {
+        return res.json({success:true});
+    } catch (error) {
+        res.json({success:false,message:error.message})
+    }
+}
+
+//send password Reset
+
+export const sendResetOtp = async (req,res)=>{
+    const {email} = req.body;
+
+    if(!email){
+        return res.json({
+            success:false,
+            message:"email is required"
+        })
+    }
+    try {
+        const user = await userModel.findOne({email})
+        if(!user){
+            return res.json({
+                success:false,
+                message:"user not found"
+            })
+        }
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+        user.resetOtp = otp;
+        user.resetOtpExpireAt= Date.now()+ 15 * 60 *1000
+
+        await user.save();
+
+        const mailOption={
+            from :process.env.SENDER_EMAIL,
+            to:user.email, 
+            subject:"Password Reset Otp",
+            text:`Your OTP for resetting your password is ${otp} use this OTP to proceed with resetting your password`
+        }
+        await transporter.sendMail(mailOption);
+
+        return res.json({
+            success:true,
+            message:'Otp sent to your email'
+        })
+
+    } catch (error) {
+        res.json({success:false,message:error.message})
+    }
+}
+
+// reset User Password
+
+export const resetPassword = async (req,res)=>{
+    const {email,otp,newPassword}= req.body;
+
+    if(!email || !otp || !newPassword){
+        return res.json({
+            success:false,
+            message:"email,Otp,and NewPassword are Required"
+        })
+    }
+    try {
+
+        const user = await userModel.findOne({email})
+        if(!user){
+            return res.json({
+                success:false,
+                message:"user not found"
+            })
+        }
+        if(user.resetOtp === "" || user.resetOtp !==otp){
+            return res.json({
+                successL:false,
+                message:"invalid otp"
+            })
+        }
+
+        if(user.resetOtpExpireAt < Date.now){
+            return res.json({
+                success:false,
+                message:'Otp is expired'
+            })
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword,10);
+
+        user.password = hashedPassword;
+        user.resetOtp="";
+        user.resetOtpExpireAt=0;
+        await user.save();
+        
+        res.json({
+            success:true,
+            message:"password has been changed succesfully"
+        })
+    } catch (error) {
+        return res.json({success:false,message:error.message})
     }
 }
