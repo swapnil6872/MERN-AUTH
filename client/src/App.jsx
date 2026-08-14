@@ -4,10 +4,13 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import EmailVerify from './pages/EmailVerify'
 import ResetPassword from './pages/ResetPassword'
-  import { ToastContainer} from 'react-toastify';
+import { ToastContainer} from 'react-toastify';
+import axios from 'axios';
 
 
 export const App = () => {
+  // Set this globally so every request includes the cookie
+   axios.defaults.withCredentials = true;
   return (
     <div>
       <ToastContainer/>
